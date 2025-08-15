@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alt-imate 실시간 테스트</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+      color: white;
+      padding: 30px;
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+      font-weight: 300;
+    }
+
+    .header p {
+      font-size: 1.1rem;
+      opacity: 0.9;
+    }
+
+    .main-content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+      min-height: 600px;
+    }
+
+    .upload-section {
+      padding: 40px;
+      border-right: 1px solid #eee;
+    }
+
+    .results-section {
+      padding: 40px;
+      background: #f8f9fa;
+    }
+
+    .upload-area {
+      border: 3px dashed #ddd;
+      border-radius: 15px;
+      padding: 60px 20px;
+      text-align: center;
+      margin-bottom: 30px;
+      transition: all 0.3s ease;
+      background: #fff;
+    }
+
+    .upload-area.dragover {
+      border-color: #4CAF50;
+      background: #f0fff0;
+      transform: scale(1.02);
+    }
+
+    .upload-area h3 {
+      color: #666;
+      margin-bottom: 15px;
+      font-size: 1.3rem;
+    }
+
+    .upload-area p {
+      color: #999;
+      margin-bottom: 20px;
+    }
+
+    .file-input-wrapper {
+      position: relative;
+      display: inline-block;
+    }
+
+    .file-input {
+      display: none;
+    }
+
+    .file-btn {
+      background: #4CAF50;
+      color: white;
+      padding: 12px 30px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+    }
+
+    .file-btn:hover {
+      background: #45a049;
+      transform: translateY(-2px);
+    }
+
+    .preview-container {
+      margin-top: 20px;
+      text-align: center;
+    }
+
+    .preview-image {
+      max-width: 100%;
+      max-height: 300px;
+      border-radius: 10px;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+
+    .status-container {
+      margin-bottom: 30px;
+    }
+
+    .status-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 15px 20px;
+      margin-bottom: 10px;
+      border-radius: 10px;
+      background: white;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+
+    .status-text {
+      font-weight: 500;
+    }
+
+    .status-indicator {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #ddd;
+      position: relative;
+    }
+
+    .status-indicator.loading {
+      background: #ffa726;
+      animation: pulse 1.5s infinite;
+    }
+
+    .status-indicator.complete {
+      background: #4CAF50;
+    }
+
+    .status-indicator.error {
+      background: #f44336;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.1); opacity: 0.7; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 4px;
+      background: #eee;
+      border-radius: 2px;
+      overflow: hidden;
+      margin-top: 10px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #4CAF50, #45a049);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    .results-container {
+      background: white;
+      border-radius: 15px;
+      padding: 25px;
+      margin-bottom: 20px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    }
+
+    .result-title {
+      font-size: 1.3rem;
+      color: #333;
+      margin-bottom: 15px;
+      font-weight: 600;
+    }
+
+    .alt-text {
+      font-size: 1.1rem;
+      line-height: 1.6;
+      color: #2c3e50;
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 10px;
+      border-left: 4px solid #4CAF50;
+      margin-bottom: 20px;
+    }
+
+    .classifications {
+      margin-top: 20px;
+    }
+
+    .classification-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid #eee;
+    }
+
+    .class-name {
+      font-weight: 500;
+      color: #333;
+    }
+
+    .confidence {
+      background: #e3f2fd;
+      color: #1976d2;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+
+    .example-images {
+      margin-top: 30px;
+    }
+
+    .example-title {
+      font-size: 1.1rem;
+      color: #666;
+      margin-bottom: 15px;
+      font-weight: 500;
+    }
+
+    .example-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 15px;
+    }
+
+    .example-image {
+      width: 100%;
+      height: 100px;
+      object-fit: cover;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: 3px solid transparent;
+    }
+
+    .example-image:hover {
+      transform: scale(1.05);
+      border-color: #4CAF50;
+    }
+
+    .performance-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    .stat-card {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      text-align: center;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #4CAF50;
+      margin-bottom: 5px;
+    }
+
+    .stat-label {
+      color: #666;
+      font-size: 0.9rem;
+    }
+
+    .error-message {
+      background: #ffebee;
+      color: #c62828;
+      padding: 20px;
+      border-radius: 10px;
+      border-left: 4px solid #f44336;
+      margin-top: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .main-content {
+        grid-template-columns: 1fr;
+      }
+
+      .upload-section {
+        border-right: none;
+        border-bottom: 1px solid #eee;
+      }
+
+      .header h1 {
+        font-size: 2rem;
+      }
+
+      .upload-area {
+        padding: 40px 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🤖 Alt-imate</h1>
+      <p>TensorFlow.js 기반 이미지 분석 & 한국어 캡션 생성기</p>
+    </div>
+
+    <div class="main-content">
+      <!-- 업로드 섹션 -->
+      <div class="upload-section">
+        <div class="upload-area" id="uploadArea">
+          <h3>📸 이미지를 업로드하세요</h3>
+          <p>드래그 앤 드롭하거나 파일을 선택하세요</p>
+          <div class="file-input-wrapper">
+            <input type="file" id="fileInput" class="file-input" accept="image/*">
+            <button class="file-btn" onclick="document.getElementById('fileInput').click()">
+              파일 선택
+            </button>
+          </div>
+        </div>
+
+        <div class="preview-container" id="previewContainer" style="display: none;">
+          <img id="previewImage" class="preview-image" alt="미리보기">
+        </div>
+
+        <div class="example-images">
+          <div class="example-title">🎯 예제 이미지로 빠른 테스트</div>
+                    <div class="example-grid">
+            <img src="https://images.unsplash.com/photo-1552053831-71594a27632d?w=200&h=200&fit=crop"
+                 class="example-image" alt="강아지" data-example="dog">
+            <img src="https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=200&h=200&fit=crop"
+                 class="example-image" alt="고양이" data-example="cat">
+            <img src="https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=200&h=200&fit=crop"
+                 class="example-image" alt="피자" data-example="pizza">
+            <img src="https://images.unsplash.com/photo-1511919884226-fd3cad34687c?w=200&h=200&fit=crop"
+                 class="example-image" alt="자동차" data-example="car">
+          </div>
+        </div>
+      </div>
+
+      <!-- 결과 섹션 -->
+      <div class="results-section">
+        <div class="status-container">
+          <div class="status-item">
+            <span class="status-text">TensorFlow.js 모델 로딩</span>
+            <div class="status-indicator" id="modelStatus"></div>
+          </div>
+          <div class="progress-bar" id="modelProgress" style="display: none;">
+            <div class="progress-fill" id="modelProgressFill"></div>
+          </div>
+
+          <div class="status-item">
+            <span class="status-text">이미지 전처리</span>
+            <div class="status-indicator" id="preprocessStatus"></div>
+          </div>
+
+          <div class="status-item">
+            <span class="status-text">이미지 분류</span>
+            <div class="status-indicator" id="classifyStatus"></div>
+          </div>
+
+          <div class="status-item">
+            <span class="status-text">한국어 캡션 생성</span>
+            <div class="status-indicator" id="captionStatus"></div>
+          </div>
+        </div>
+
+        <div class="results-container" id="resultsContainer" style="display: none;">
+          <div class="result-title">🎯 분석 결과</div>
+
+          <div class="alt-text" id="altTextResult">
+            분석을 위해 이미지를 업로드해주세요.
+          </div>
+
+          <div class="classifications" id="classificationsResult">
+            <h4 style="margin-bottom: 15px; color: #666;">상세 분류 결과</h4>
+            <!-- 분류 결과가 여기에 표시됩니다 -->
+          </div>
+        </div>
+
+        <div class="performance-stats" id="performanceStats" style="display: none;">
+          <div class="stat-card">
+            <div class="stat-value" id="processTime">-</div>
+            <div class="stat-label">처리 시간 (초)</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="confidence">-</div>
+            <div class="stat-label">신뢰도 (%)</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="memoryUsage">-</div>
+            <div class="stat-label">메모리 사용량 (MB)</div>
+          </div>
+        </div>
+
+        <div class="error-message" id="errorMessage" style="display: none;">
+          <!-- 오류 메시지가 여기에 표시됩니다 -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TensorFlow.js와 라이브러리 로딩 -->
+  <script type="importmap">
+    {
+      "imports": {
+        "@tensorflow/tfjs": "https://cdn.skypack.dev/@tensorflow/tfjs"
+      }
+    }
+  </script>
+
+  <script type="module">
+    // ES 모듈로 라이브러리 로딩
+    import { analyzeImage, preloadModel, getModelStatus } from './dist/browser/index.js';
+
+    // 전역 상태
+    let isModelLoaded = false;
+    let currentAnalysis = null;
+
+    // DOM 요소들 (페이지 로드 후에 초기화)
+    let fileInput, uploadArea, previewContainer, previewImage;
+    let resultsContainer, performanceStats, errorMessage;
+    let modelStatus, preprocessStatus, classifyStatus, captionStatus;
+    let modelProgress, modelProgressFill;
+    let altTextResult, classificationsResult, processTime, confidence, memoryUsage;
+
+    // 유틸리티 함수들
+    function resetStatus() {
+      [preprocessStatus, classifyStatus, captionStatus].forEach(el => {
+        el.className = 'status-indicator';
+      });
+      errorMessage.style.display = 'none';
+    }
+
+    function setStatus(element, status) {
+      element.className = `status-indicator ${status}`;
+    }
+
+    function showError(message) {
+      errorMessage.textContent = message;
+      errorMessage.style.display = 'block';
+      resetStatus();
+    }
+
+    function updateProgress(progress) {
+      modelProgress.style.display = 'block';
+      modelProgressFill.style.width = `${progress * 100}%`;
+    }
+
+    function formatBytes(bytes) {
+      return (bytes / 1024 / 1024).toFixed(1);
+    }
+
+    // 모델 사전 로딩
+    async function initializeModel() {
+      try {
+        setStatus(modelStatus, 'loading');
+
+        await preloadModel({
+          onLoadProgress: updateProgress
+        });
+
+        setStatus(modelStatus, 'complete');
+        modelProgress.style.display = 'none';
+        isModelLoaded = true;
+
+        console.log('✅ 모델 로딩 완료');
+      } catch (error) {
+        setStatus(modelStatus, 'error');
+        showError(`모델 로딩 실패: ${error.message}`);
+      }
+    }
+
+    // 이미지 분석 함수
+    async function analyzeImageFile(file) {
+      if (!isModelLoaded) {
+        showError('모델이 아직 로딩되지 않았습니다. 잠시 후 다시 시도해주세요.');
+        return;
+      }
+
+      const startTime = performance.now();
+      const startMemory = performance.memory ? performance.memory.usedJSHeapSize : 0;
+
+      try {
+        resetStatus();
+        resultsContainer.style.display = 'none';
+        performanceStats.style.display = 'none';
+
+        // 1. 이미지 전처리
+        setStatus(preprocessStatus, 'loading');
+        await new Promise(resolve => setTimeout(resolve, 100)); // UI 업데이트 대기
+
+        // 2. 이미지 분류
+        setStatus(preprocessStatus, 'complete');
+        setStatus(classifyStatus, 'loading');
+
+        // 3. 캡션 생성
+        setStatus(captionStatus, 'loading');
+
+        const result = await analyzeImage(file, {
+          maxPredictions: 5
+        });
+
+        setStatus(classifyStatus, 'complete');
+        setStatus(captionStatus, 'complete');
+
+        // 결과 표시
+        displayResults(result);
+
+        // 성능 통계 표시
+        const endTime = performance.now();
+        const endMemory = performance.memory ? performance.memory.usedJSHeapSize : 0;
+
+        processTime.textContent = ((endTime - startTime) / 1000).toFixed(2);
+        confidence.textContent = Math.round(result.confidence * 100);
+        memoryUsage.textContent = formatBytes(endMemory - startMemory);
+
+        performanceStats.style.display = 'grid';
+
+      } catch (error) {
+        showError(`분석 실패: ${error.message}`);
+        console.error('분석 오류:', error);
+      }
+    }
+
+    // 결과 표시 함수
+    function displayResults(result) {
+      // Alt text 표시
+      altTextResult.textContent = result.altText;
+
+      // 분류 결과 표시
+      const classificationsHtml = result.classifications.map(item => `
+        <div class="classification-item">
+          <span class="class-name">${item.className}</span>
+          <span class="confidence">${Math.round(item.confidence * 100)}%</span>
+        </div>
+      `).join('');
+
+      classificationsResult.innerHTML = `
+        <h4 style="margin-bottom: 15px; color: #666;">상세 분류 결과</h4>
+        ${classificationsHtml}
+      `;
+
+      resultsContainer.style.display = 'block';
+    }
+
+
+
+        // 예제 이미지 로딩 함수
+    async function loadExampleImage(img) {
+      try {
+        // 예제 이미지를 Blob으로 변환
+        const response = await fetch(img.src);
+        const blob = await response.blob();
+
+        // 미리보기 표시
+        previewImage.src = img.src;
+        previewContainer.style.display = 'block';
+
+        // 이미지 분석
+        await analyzeImageFile(blob);
+      } catch (error) {
+        showError(`예제 이미지 로딩 실패: ${error.message}`);
+      }
+    }
+
+    // 예제 이미지 이벤트 리스너 등록
+    function setupExampleImages() {
+      const exampleImages = document.querySelectorAll('.example-image');
+      exampleImages.forEach(img => {
+        img.addEventListener('click', () => loadExampleImage(img));
+      });
+    }
+
+    // DOM 요소들 초기화
+    function initializeDOMElements() {
+      fileInput = document.getElementById('fileInput');
+      uploadArea = document.getElementById('uploadArea');
+      previewContainer = document.getElementById('previewContainer');
+      previewImage = document.getElementById('previewImage');
+      resultsContainer = document.getElementById('resultsContainer');
+      performanceStats = document.getElementById('performanceStats');
+      errorMessage = document.getElementById('errorMessage');
+
+      // 상태 표시 요소들
+      modelStatus = document.getElementById('modelStatus');
+      preprocessStatus = document.getElementById('preprocessStatus');
+      classifyStatus = document.getElementById('classifyStatus');
+      captionStatus = document.getElementById('captionStatus');
+      modelProgress = document.getElementById('modelProgress');
+      modelProgressFill = document.getElementById('modelProgressFill');
+
+      // 결과 표시 요소들
+      altTextResult = document.getElementById('altTextResult');
+      classificationsResult = document.getElementById('classificationsResult');
+      processTime = document.getElementById('processTime');
+      confidence = document.getElementById('confidence');
+      memoryUsage = document.getElementById('memoryUsage');
+
+      console.log('✅ DOM 요소들 초기화 완료');
+      console.log('fileInput:', fileInput);
+    }
+
+    // 이벤트 리스너들 설정
+    function setupEventListeners() {
+      // 파일 업로드 이벤트
+      console.log('Setting up file input listener...');
+      fileInput.addEventListener('change', async (e) => {
+        console.log('File input changed!', e);
+        const file = e.target.files[0];
+        if (file) {
+          console.log('Selected file:', file);
+          // 미리보기 표시
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            previewImage.src = e.target.result;
+            previewContainer.style.display = 'block';
+          };
+          reader.readAsDataURL(file);
+
+          console.log(file);
+
+          // 이미지 분석
+          await analyzeImageFile(file);
+        }
+      });
+
+      // 드래그 앤 드롭
+      uploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadArea.classList.add('dragover');
+      });
+
+      uploadArea.addEventListener('dragleave', () => {
+        uploadArea.classList.remove('dragover');
+      });
+
+      uploadArea.addEventListener('drop', async (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+          const file = files[0];
+          if (file.type.startsWith('image/')) {
+            // 미리보기 표시
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              previewImage.src = e.target.result;
+              previewContainer.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+
+            // 이미지 분석
+            await analyzeImageFile(file);
+          }
+        }
+      });
+
+      console.log('✅ 이벤트 리스너 설정 완료');
+    }
+
+    // 페이지 로드시 초기화
+    window.addEventListener('DOMContentLoaded', () => {
+      console.log('🔄 DOM 로드 완료, 초기화 시작...');
+      initializeDOMElements();
+      setupEventListeners();
+      setupExampleImages();
+      initializeModel();
+    });
+
+  </script>
+</body>
+</html>

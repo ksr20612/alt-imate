@@ -1,0 +1,39 @@
+# Dependencies
+node_modules/
+pnpm-lock.yaml
+
+# Build outputs
+dist/
+*.tsbuildinfo
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Editor
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Runtime
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage
+coverage/
+.coverage
+
+# Temporary
+.tmp/
+.temp/

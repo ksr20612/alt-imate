@@ -1,0 +1,49 @@
+{
+  "name": "alt-imate",
+  "version": "1.0.0",
+  "description": "AI-powered image analysis library that generates Korean alt text using TensorFlow.js",
+  "main": "dist/index.js",
+  "module": "dist/index.es.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc && npm run build:es",
+    "build:es": "tsc --module es2020 --outDir dist/es",
+    "build:browser": "node build-browser.js",
+    "dev": "tsc --watch",
+    "serve": "node serve.js",
+    "test": "npm run build:browser && npm run serve",
+    "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix",
+    "format": "prettier --write src/**/*.ts"
+  },
+  "keywords": [
+    "tensorflow",
+    "image-analysis",
+    "alt-text",
+    "accessibility",
+    "machine-learning"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@tensorflow/tfjs": "^4.15.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@typescript-eslint/eslint-plugin": "^8.39.1",
+    "@typescript-eslint/parser": "^8.39.1",
+    "eslint": "^8.54.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-prettier": "^5.0.1",
+    "prettier": "^3.1.0",
+    "typescript": "^5.9.2"
+  },
+  "files": [
+    "dist/**/*"
+  ],
+  "packageManager": "pnpm@8.15.0",
+  "engines": {
+    "node": ">=16",
+    "pnpm": ">=8"
+  }
+}

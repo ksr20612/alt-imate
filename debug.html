@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alt-imate 디버그 테스트</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .test-section {
+      background: white;
+      padding: 20px;
+      margin: 20px 0;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .file-input {
+      margin: 10px 0;
+    }
+    .log {
+      background: #f0f0f0;
+      padding: 10px;
+      border-radius: 5px;
+      font-family: monospace;
+      white-space: pre-wrap;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    .success { color: green; }
+    .error { color: red; }
+    .info { color: blue; }
+  </style>
+</head>
+<body>
+  <h1>🐛 Alt-imate 디버그 테스트</h1>
+
+  <div class="test-section">
+    <h2>1단계: 기본 JavaScript 테스트</h2>
+    <button id="basicTest">기본 테스트 실행</button>
+    <div id="basicResult" class="log"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>2단계: DOM 요소 찾기 테스트</h2>
+    <input type="file" id="fileInput" accept="image/*" class="file-input">
+    <button id="domTest">DOM 테스트 실행</button>
+    <div id="domResult" class="log"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>3단계: 파일 선택 이벤트 테스트</h2>
+    <input type="file" id="fileInputTest" accept="image/*" class="file-input">
+    <button id="eventTest">이벤트 테스트 실행</button>
+    <div id="eventResult" class="log"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>4단계: ES 모듈 로딩 테스트</h2>
+    <button id="moduleTest">모듈 테스트 실행</button>
+    <div id="moduleResult" class="log"></div>
+  </div>
+
+  <script>
+    let logCount = 0;
+
+    function log(elementId, message, type = 'info') {
+      const element = document.getElementById(elementId);
+      const timestamp = new Date().toLocaleTimeString();
+      const logMessage = `[${timestamp}] ${message}\n`;
+      element.innerHTML += `<span class="${type}">${logMessage}</span>`;
+      element.scrollTop = element.scrollHeight;
+      console.log(message);
+    }
+
+    // 1단계: 기본 JavaScript 테스트
+    document.getElementById('basicTest').addEventListener('click', () => {
+      const resultId = 'basicResult';
+      document.getElementById(resultId).innerHTML = '';
+
+      try {
+        log(resultId, '✅ JavaScript 기본 실행 가능', 'success');
+        log(resultId, `✅ Document 객체: ${typeof document}`, 'success');
+        log(resultId, `✅ Console 객체: ${typeof console}`, 'success');
+        log(resultId, `✅ Window 객체: ${typeof window}`, 'success');
+
+        // 간단한 DOM 조작 테스트
+        const testDiv = document.createElement('div');
+        testDiv.textContent = 'Test Element';
+        log(resultId, '✅ DOM 요소 생성 가능', 'success');
+
+      } catch (error) {
+        log(resultId, `❌ 기본 테스트 실패: ${error.message}`, 'error');
+      }
+    });
+
+    // 2단계: DOM 요소 찾기 테스트
+    document.getElementById('domTest').addEventListener('click', () => {
+      const resultId = 'domResult';
+      document.getElementById(resultId).innerHTML = '';
+
+      try {
+        const fileInput = document.getElementById('fileInput');
+        log(resultId, `파일 입력 요소: ${fileInput ? '✅ 찾음' : '❌ 못찾음'}`, fileInput ? 'success' : 'error');
+
+        if (fileInput) {
+          log(resultId, `- 태그명: ${fileInput.tagName}`, 'info');
+          log(resultId, `- ID: ${fileInput.id}`, 'info');
+          log(resultId, `- accept 속성: ${fileInput.accept}`, 'info');
+        }
+
+        // 다른 요소들도 테스트
+        const body = document.querySelector('body');
+        log(resultId, `Body 요소: ${body ? '✅ 찾음' : '❌ 못찾음'}`, body ? 'success' : 'error');
+
+      } catch (error) {
+        log(resultId, `❌ DOM 테스트 실패: ${error.message}`, 'error');
+      }
+    });
+
+    // 3단계: 파일 선택 이벤트 테스트
+    document.getElementById('eventTest').addEventListener('click', () => {
+      const resultId = 'eventResult';
+      document.getElementById(resultId).innerHTML = '';
+
+      try {
+        const fileInputTest = document.getElementById('fileInputTest');
+
+        if (!fileInputTest) {
+          log(resultId, '❌ 파일 입력 요소를 찾을 수 없음', 'error');
+          return;
+        }
+
+        log(resultId, '✅ 이벤트 리스너 등록 시작...', 'info');
+
+        // 기존 이벤트 리스너 제거 (중복 방지)
+        fileInputTest.removeEventListener('change', fileChangeHandler);
+
+        // 이벤트 핸들러 정의
+        function fileChangeHandler(e) {
+          log(resultId, '🎉 파일 변경 이벤트 발생!', 'success');
+          const file = e.target.files[0];
+          if (file) {
+            log(resultId, `- 파일명: ${file.name}`, 'info');
+            log(resultId, `- 파일 크기: ${file.size} bytes`, 'info');
+            log(resultId, `- 파일 타입: ${file.type}`, 'info');
+          } else {
+            log(resultId, '- 선택된 파일 없음', 'info');
+          }
+        }
+
+        fileInputTest.addEventListener('change', fileChangeHandler);
+        log(resultId, '✅ 이벤트 리스너 등록 완료 - 이제 파일을 선택해보세요!', 'success');
+
+      } catch (error) {
+        log(resultId, `❌ 이벤트 테스트 실패: ${error.message}`, 'error');
+      }
+    });
+
+    // 4단계: ES 모듈 테스트 (동적 import 사용)
+    document.getElementById('moduleTest').addEventListener('click', async () => {
+      const resultId = 'moduleResult';
+      document.getElementById(resultId).innerHTML = '';
+
+      try {
+        log(resultId, '📦 ES 모듈 로딩 시도...', 'info');
+
+        // 파일 존재 확인
+        try {
+          const response = await fetch('./dist/browser/index.js');
+          log(resultId, `모듈 파일 상태: ${response.status} ${response.statusText}`, response.ok ? 'success' : 'error');
+
+          if (!response.ok) {
+            log(resultId, '❌ 모듈 파일을 찾을 수 없습니다. 빌드가 필요할 수 있습니다.', 'error');
+            return;
+          }
+        } catch (fetchError) {
+          log(resultId, `❌ 모듈 파일 접근 실패: ${fetchError.message}`, 'error');
+          return;
+        }
+
+        // 동적 import 시도
+        try {
+          const module = await import('./dist/browser/index.js');
+          log(resultId, '✅ ES 모듈 로딩 성공!', 'success');
+          log(resultId, `- 내보낸 함수들: ${Object.keys(module).join(', ')}`, 'info');
+
+          // 기본 함수들 확인
+          if (module.analyzeImage) {
+            log(resultId, '✅ analyzeImage 함수 발견', 'success');
+          }
+          if (module.preloadModel) {
+            log(resultId, '✅ preloadModel 함수 발견', 'success');
+          }
+
+        } catch (importError) {
+          log(resultId, `❌ ES 모듈 import 실패: ${importError.message}`, 'error');
+        }
+
+      } catch (error) {
+        log(resultId, `❌ 모듈 테스트 실패: ${error.message}`, 'error');
+      }
+    });
+
+    // 페이지 로드시 자동 실행
+    window.addEventListener('DOMContentLoaded', () => {
+      console.log('🔍 디버그 페이지 로드 완료');
+    });
+  </script>
+</body>
+</html>
